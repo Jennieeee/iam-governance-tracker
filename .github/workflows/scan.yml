@@ -1,0 +1,32 @@
+name: IAM Weekly Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # every Sunday
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run IAM Scanners
+        run: |
+          python scanners/aws_scanner.py > results/scan-logs.json
+          # Add similar lines for Azure & GCP
+
+      - name: Push scan results as PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python remediators/create_pr.py
